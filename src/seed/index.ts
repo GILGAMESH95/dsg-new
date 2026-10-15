@@ -154,6 +154,13 @@ async function localize<T extends 'projects' | 'promotions' | 'posts'>(
 
 async function seed() {
   const payload = await getPayload({ config })
+  if (process.env.SEED_ONLY_IF_EMPTY) {
+    const { totalDocs } = await payload.count({ collection: 'projects' })
+    if (totalDocs > 0) {
+      payload.logger.info('База уже заполнена — пропускаю демо-данные')
+      process.exit(0)
+    }
+  }
   payload.logger.info('Очищаю демо-данные…')
   await clear(payload)
 
