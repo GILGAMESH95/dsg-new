@@ -12,7 +12,7 @@ import { CloseIcon, MenuIcon, PhoneIcon } from './icons'
 import { LeadButton } from './LeadModal'
 import { Logo } from './Logo'
 
-const navKeys = ['projects', 'apartments', 'promotions', 'about', 'blog', 'contacts'] as const
+const navKeys = ['projects', 'apartments', 'about', 'blog', 'contacts'] as const
 
 export function Header({
   locale,

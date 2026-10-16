@@ -17,7 +17,7 @@ export function Footer({
   dict: Dictionary
   settings: SiteSetting
 }) {
-  const nav = ['projects', 'apartments', 'promotions', 'about', 'blog', 'contacts'] as const
+  const nav = ['projects', 'apartments', 'about', 'blog', 'contacts'] as const
   const socials = [
     { href: settings.instagram, icon: InstagramIcon, label: 'Instagram' },
     { href: settings.facebook, icon: FacebookIcon, label: 'Facebook' },

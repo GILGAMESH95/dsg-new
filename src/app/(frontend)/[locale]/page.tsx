@@ -89,7 +89,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       {promotions.length > 0 && (
         <section className="section section--dark">
           <div className="container">
-            <SectionHead title={dict.home.promoTitle} lead={dict.home.promoLead} link={{ href: `/${locale}/promotions`, label: dict.common.more }} />
+            <SectionHead title={dict.home.promoTitle} lead={dict.home.promoLead} />
             <div className="grid grid--3">
               {promotions.map((promo) => (
                 <PromoCard key={promo.id} promo={promo} locale={locale} dict={dict}>
