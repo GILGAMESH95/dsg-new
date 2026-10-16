@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
-import { Calculator } from '@/components/Calculator'
 import { ApartmentCard, PostCard, ProjectCard, PromoCard } from '@/components/Cards'
 import { CtaSection } from '@/components/CtaSection'
 import { ArrowIcon } from '@/components/icons'
@@ -48,8 +47,8 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
             <Link href={`/${locale}/apartments`} className="btn btn--accent btn--lg">
               {dict.hero.primary}
             </Link>
-            <Link href={`/${locale}/promotions`} className="btn btn--ghost btn--lg">
-              {dict.hero.secondary}
+            <Link href={`/${locale}/projects`} className="btn btn--ghost btn--lg">
+              {dict.common.allProjects}
             </Link>
           </div>
           {settings.stats && settings.stats.length > 0 && (
@@ -87,10 +86,10 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         </div>
       </section>
 
-      <section className="section section--dark">
-        <div className="container">
-          <SectionHead title={dict.home.promoTitle} lead={dict.home.promoLead} link={{ href: `/${locale}/promotions`, label: dict.common.more }} />
-          {promotions.length > 0 && (
+      {promotions.length > 0 && (
+        <section className="section section--dark">
+          <div className="container">
+            <SectionHead title={dict.home.promoTitle} lead={dict.home.promoLead} link={{ href: `/${locale}/promotions`, label: dict.common.more }} />
             <div className="grid grid--3">
               {promotions.map((promo) => (
                 <PromoCard key={promo.id} promo={promo} locale={locale} dict={dict}>
@@ -106,31 +105,26 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                 </PromoCard>
               ))}
             </div>
-          )}
-          <div className="calc-block">
-            <div className="calc-block__intro">
-              <h3>{dict.calculator.title}</h3>
-              <p>{dict.calculator.lead}</p>
-            </div>
-            <Calculator dict={dict.calculator} />
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
-      <section className="section">
-        <div className="container">
-          <SectionHead
-            title={dict.home.apartmentsTitle}
-            lead={dict.home.apartmentsLead}
-            link={{ href: `/${locale}/apartments`, label: dict.common.allApartments }}
-          />
-          <div className="grid grid--4">
-            {apartments.docs.map((a) => (
-              <ApartmentCard key={a.id} apartment={a} locale={locale} dict={dict} />
-            ))}
+      {apartments.docs.length > 0 && (
+        <section className="section">
+          <div className="container">
+            <SectionHead
+              title={dict.home.apartmentsTitle}
+              lead={dict.home.apartmentsLead}
+              link={{ href: `/${locale}/apartments`, label: dict.common.allApartments }}
+            />
+            <div className="grid grid--4">
+              {apartments.docs.map((a) => (
+                <ApartmentCard key={a.id} apartment={a} locale={locale} dict={dict} />
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       <section className="section section--warm">
         <div className="container">
@@ -144,27 +138,6 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
               </div>
             ))}
           </div>
-        </div>
-      </section>
-
-      <section className="section section--dark invest">
-        <div className="container invest__inner">
-          <div>
-            <span className="eyebrow">Investment</span>
-            <h2 className="section-head__title">{dict.home.investTitle}</h2>
-            <p className="section-head__lead">{dict.home.investLead}</p>
-            <LeadButton className="btn btn--accent" type="consultation" title={dict.home.investCta} details="Инвест-презентация">
-              {dict.home.investCta}
-            </LeadButton>
-          </div>
-          <dl className="invest__stats">
-            {dict.home.invest.map((s) => (
-              <div key={s.label}>
-                <dt>{s.value}</dt>
-                <dd>{s.label}</dd>
-              </div>
-            ))}
-          </dl>
         </div>
       </section>
 

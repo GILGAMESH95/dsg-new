@@ -2,7 +2,6 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
-import { Calculator } from '@/components/Calculator'
 import { ApartmentCard } from '@/components/Cards'
 import { CtaSection } from '@/components/CtaSection'
 import { CheckIcon, PinIcon } from '@/components/icons'
@@ -156,25 +155,6 @@ export default async function ProjectPage({ params }: Props) {
           )}
         </div>
       </section>
-
-      {project.status !== 'completed' && (
-        <section className="section section--dark">
-          <div className="container">
-            <SectionHead
-              title={dict.project.installment}
-              lead={`${dict.project.downFrom} ${project.minDownPayment ?? 20}%, ${dict.project.upTo} ${project.maxInstallmentMonths ?? 36} ${dict.project.months}`}
-            />
-            {project.installmentNote && <p className="section-note">{project.installmentNote}</p>}
-            <Calculator
-              dict={dict.calculator}
-              initialPrice={s?.priceFrom ? Math.round(s.priceFrom / 1000) * 1000 : undefined}
-              minDown={project.minDownPayment ?? 20}
-              maxMonths={project.maxInstallmentMonths ?? 36}
-              project={project.id}
-            />
-          </div>
-        </section>
-      )}
 
       {project.progress && project.progress.length > 0 && (
         <section className="section">

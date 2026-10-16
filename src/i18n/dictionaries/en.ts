@@ -62,7 +62,7 @@ export const en: Dictionary = {
   hero: {
     title: 'Seaside apartments in Batumi from the developer',
     subtitle:
-      'We build residential complexes with our own quality control. Interest-free installments for up to 36 months.',
+      'We build residential complexes with our own quality control.',
     primary: 'Find an apartment',
     secondary: 'Installment terms',
   },
@@ -76,7 +76,6 @@ export const en: Dictionary = {
     whyTitle: 'Why DS Group',
     why: [
       { title: 'We build ourselves', text: 'We are the developer, not an agency. We control every stage from foundation to keys.' },
-      { title: 'No-bank installments', text: 'From 20% down payment, the rest in equal payments for up to 36 months, interest-free.' },
       { title: 'Legal clarity', text: 'All construction permits in place, ownership registered in the Public Registry.' },
       { title: 'On-time delivery', text: 'Monthly photo and video reports on the construction progress of every complex.' },
     ],
