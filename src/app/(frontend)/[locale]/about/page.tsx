@@ -36,7 +36,7 @@ export default async function AboutPage({ params }: Props) {
         crumbs={[{ href: `/${locale}`, label: dict.common.breadcrumbsHome }]}
       />
       <section className="section section--tight">
-        <div className="container about">
+        <div className={`container about ${settings.aboutImage ? '' : 'about--solo'}`}>
           <div>
             <RichText data={settings.aboutText} />
             {settings.stats && settings.stats.length > 0 && (
@@ -50,7 +50,7 @@ export default async function AboutPage({ params }: Props) {
               </dl>
             )}
           </div>
-          <Img media={settings.aboutImage} alt="DS Group" className="about__img" sizes="(max-width: 960px) 100vw, 45vw" />
+          {settings.aboutImage && <Img media={settings.aboutImage} alt="DS Group" className="about__img" sizes="(max-width: 960px) 100vw, 45vw" />}
         </div>
       </section>
       <section className="section section--warm">
@@ -67,6 +67,52 @@ export default async function AboutPage({ params }: Props) {
           </div>
         </div>
       </section>
+      {settings.aboutHistory && settings.aboutHistory.length > 0 && (
+        <section className="section">
+          <div className="container">
+            <SectionHead title={dict.about.historyTitle} />
+            <ol className="timeline">
+              {settings.aboutHistory.map((h) => (
+                <li key={h.id}>
+                  <b>{h.year}</b>
+                  <p>{h.text}</p>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
+      )}
+      {settings.aboutTeam && settings.aboutTeam.length > 0 && (
+        <section className="section section--warm">
+          <div className="container">
+            <SectionHead title={dict.about.teamTitle} />
+            <div className="team">
+              {settings.aboutTeam.map((m) => (
+                <div key={m.id} className="team__item">
+                  <Img media={m.photo} alt={m.name} size="card" className="team__photo" sizes="(max-width: 720px) 50vw, 20vw" />
+                  <h3>{m.name}</h3>
+                  {m.role && <p>{m.role}</p>}
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+      {settings.aboutAwards && settings.aboutAwards.length > 0 && (
+        <section className="section">
+          <div className="container">
+            <SectionHead title={dict.about.awardsTitle} />
+            <ul className="awards">
+              {settings.aboutAwards.map((a) => (
+                <li key={a.id}>
+                  <span>{a.title}</span>
+                  {a.year && <time>{a.year}</time>}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      )}
       {completed.length > 0 && (
         <section className="section">
           <div className="container">

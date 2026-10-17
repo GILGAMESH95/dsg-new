@@ -4,13 +4,21 @@ import { notFound } from 'next/navigation'
 import type { ReactNode } from 'react'
 
 import { FloatingContacts } from '@/components/FloatingContacts'
+import { AccountSyncer } from '@/components/AccountSyncer'
+import { BottomNav } from '@/components/BottomNav'
+import { CompareBar } from '@/components/CompareBar'
 import { Footer } from '@/components/Footer'
 import { Header } from '@/components/Header'
+import { ImageLightbox } from '@/components/ImageLightbox'
 import { LeadModalProvider } from '@/components/LeadModal'
 import { htmlLang, isLocale, locales } from '@/i18n/config'
 import { getDictionary } from '@/i18n'
+import { getClient, getUnreadCount } from '@/lib/clientAuth'
 import { mediaUrl } from '@/lib/media'
 import { getSettings } from '@/lib/payload'
+import { telegramHref, whatsappHref } from '@/lib/format'
+import { buildMenu } from '@/lib/menu'
+import { getPaymentMethods, getProjects } from '@/lib/queries'
 import { buildMetadata, siteUrl } from '@/lib/seo'
 
 import '../styles.css'
@@ -55,6 +63,29 @@ export default async function LocaleLayout({
   if (!isLocale(locale)) notFound()
   const dict = getDictionary(locale)
   const settings = await getSettings(locale)
+  const [menuProjects, buyMethods] = await Promise.all([getProjects(locale), getPaymentMethods(locale)])
+  const menu = buildMenu({ locale, settings, nav: dict.nav, projects: menuProjects, methods: buyMethods })
+  const socials = [
+    settings.instagram && { href: settings.instagram, kind: 'instagram' as const, label: 'Instagram' },
+    settings.facebook && { href: settings.facebook, kind: 'facebook' as const, label: 'Facebook' },
+    settings.youtube && { href: settings.youtube, kind: 'youtube' as const, label: 'YouTube' },
+    settings.telegram && { href: telegramHref(settings.telegram), kind: 'telegram' as const, label: 'Telegram' },
+    settings.whatsapp && { href: whatsappHref(settings.whatsapp), kind: 'whatsapp' as const, label: 'WhatsApp' },
+  ].filter(Boolean) as { href: string; kind: 'instagram' | 'facebook' | 'youtube' | 'telegram' | 'whatsapp'; label: string }[]
+  const client = await getClient()
+  const account = client
+    ? {
+        initials:
+          (client.name ?? '')
+            .split(/\s+/)
+            .filter(Boolean)
+            .slice(0, 2)
+            .map((w) => w[0]!.toUpperCase())
+            .join('') || client.email[0]!.toUpperCase(),
+        unread: await getUnreadCount(client.id),
+        menu: dict.cabinet.menu,
+      }
+    : null
 
   const orgJsonLd = {
     '@context': 'https://schema.org',
@@ -76,10 +107,23 @@ export default async function LocaleLayout({
     <html lang={htmlLang[locale]} className={`${manrope.variable} ${georgian.variable} lang-${locale}`}>
       <body>
         <LeadModalProvider locale={locale} dict={dict.form}>
-          <Header locale={locale} nav={dict.nav} callMe={dict.common.callMe} phone={settings.phone} />
+          <Header locale={locale} menu={menu} callMe={dict.common.callMe} phone={settings.phone} favLabel={dict.nav.favorites} accountLabel={dict.account.title} account={account} authDict={dict.account} mobileLabels={{ title: dict.common.menu, login: dict.account.loginTab, favorites: dict.nav.favorites, back: dict.project.prev, choose: dict.project.chooseApartment, callMe: dict.common.callMe, consultTitle: dict.common.consultation, consultLead: dict.home.ctaLead, phone: dict.contacts.phone, email: dict.contacts.email }} mobileContacts={{ phone: settings.phone, email: settings.email, socials }} />
           <main>{children}</main>
           <Footer locale={locale} dict={dict} settings={settings} />
           <FloatingContacts dict={dict.floating} settings={settings} />
+          <BottomNav
+            locale={locale}
+            labels={{
+              apartments: dict.nav.apartments,
+              projects: dict.nav.projects,
+              home: dict.nav.home,
+              promotions: dict.nav.promotions,
+              menu: dict.common.menu,
+            }}
+          />
+          <ImageLightbox />
+          {client && <AccountSyncer />}
+          <CompareBar locale={locale} labels={dict.compare} />
         </LeadModalProvider>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }} />
       </body>

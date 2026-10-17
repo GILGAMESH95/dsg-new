@@ -6,7 +6,10 @@ export const formatPrice = (value: number | null | undefined, locale: Locale) =>
     ? ''
     : `$${new Intl.NumberFormat(htmlLang[locale], { maximumFractionDigits: 0 }).format(value)}`
 
-export const formatNumber = (value: number, locale: Locale) =>
+export const formatGel = (value: number, locale: Locale) =>
+  `${new Intl.NumberFormat(htmlLang[locale], { maximumFractionDigits: 0 }).format(value)} ₾`
+
+export const formatNumber =(value: number, locale: Locale) =>
   new Intl.NumberFormat(htmlLang[locale], { maximumFractionDigits: 1 }).format(value)
 
 export const formatDate = (value: string | null | undefined, locale: Locale) =>

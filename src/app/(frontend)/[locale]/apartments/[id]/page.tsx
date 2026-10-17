@@ -4,15 +4,19 @@ import { notFound } from 'next/navigation'
 import { cache } from 'react'
 
 import { Calculator } from '@/components/Calculator'
-import { ApartmentCard } from '@/components/Cards'
+import { ApartmentCard, apartmentFacts } from '@/components/Cards'
+import { BookingForm } from '@/components/BookingForm'
+import { CompareButton } from '@/components/CompareButton'
+import { FavoriteButton } from '@/components/FavoriteButton'
 import { Img } from '@/components/Img'
+import { PlanTabs, type PlanTab } from '@/components/PlanTabs'
 import { LeadForm } from '@/components/LeadForm'
 import { Breadcrumbs, SectionHead } from '@/components/Section'
 import { getDictionary } from '@/i18n'
 import { isLocale, type Locale } from '@/i18n/config'
 import { formatNumber, formatPrice } from '@/lib/format'
 import { mediaUrl } from '@/lib/media'
-import { getPayloadClient } from '@/lib/payload'
+import { getPayloadClient, getSettings } from '@/lib/payload'
 import { buildMetadata, siteUrl } from '@/lib/seo'
 
 type Props = { params: Promise<{ locale: string; id: string }> }
@@ -21,7 +25,7 @@ const getApartment = cache(async (id: string, locale: Locale) => {
   const n = Number(id)
   if (!Number.isInteger(n)) return null
   const payload = await getPayloadClient()
-  return payload.findByID({ collection: 'apartments', id: n, locale, depth: 1 }).catch(() => null)
+  return payload.findByID({ collection: 'apartments', id: n, locale, depth: 2 }).catch(() => null)
 })
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -51,6 +55,7 @@ export default async function ApartmentPage({ params }: Props) {
   const title = dict.apartment.title(apt.rooms, apt.area)
 
   const payload = await getPayloadClient()
+  const settings = await getSettings(locale)
   const similar = await payload.find({
     collection: 'apartments',
     locale,
@@ -63,16 +68,29 @@ export default async function ApartmentPage({ params }: Props) {
     },
   })
 
+  const { tags, discount } = apartmentFacts(apt, dict)
+
   const rows: [string, string][] = [
     [dict.apartment.number, apt.number],
+    ...(apt.building ? [[dict.apartment.building, apt.building] as [string, string]] : []),
     [dict.common.rooms, apt.rooms === 0 ? dict.common.studio : String(apt.rooms)],
     [dict.common.area, `${formatNumber(apt.area, locale)} ${dict.common.sqm}`],
-    [dict.common.floor, project?.floors ? `${apt.floor} / ${project.floors}` : String(apt.floor)],
+    [dict.common.floor, project?.floors ? dict.apartment.floorOf(apt.floor, project.floors) : String(apt.floor)],
+    ...(apt.finish ? [[dict.apartment.finish, dict.catalog.finishOptions[apt.finish]] as [string, string]] : []),
     ...(apt.view?.length ? [[dict.common.view, apt.view.map((v) => dict.views[v]).join(', ')] as [string, string]] : []),
     [dict.apartment.balcony, apt.hasBalcony ? dict.apartment.yes : dict.apartment.no],
-    [dict.apartment.renovated, apt.renovated ? dict.apartment.yes : dict.apartment.no],
+    ...(apt.finish ? [] : [[dict.apartment.renovated, apt.renovated ? dict.apartment.yes : dict.apartment.no] as [string, string]]),
     ...(project?.completion ? [[dict.common.completion, project.completion] as [string, string]] : []),
   ]
+
+  // Вкладки над планировкой: сама планировка + дополнительные изображения из админки
+  const planTabs: PlanTab[] = [
+    { id: 'plan', label: dict.apartment.planTabs.plan, media: apt.plan },
+    ...(apt.extraImages ?? []).map((x, i) => ({ id: `${x.kind}-${i}`, label: dict.apartment.planTabs[x.kind] ?? x.kind, media: x.image })),
+  ].flatMap(({ media, ...t }) => {
+    const url = mediaUrl(media, 'hero')
+    return url ? [{ ...t, url, fullUrl: mediaUrl(media), alt: `${t.label} — ${title}` }] : []
+  })
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -102,27 +120,30 @@ export default async function ApartmentPage({ params }: Props) {
             current={`№ ${apt.number}`}
           />
           <div className="apt-page__grid">
-            <div className="apt-page__plan">
-              <Img media={apt.plan} alt={`${dict.apartment.plan} ${title}`} sizes="(max-width: 960px) 100vw, 60vw" priority />
-            </div>
-            <div className="apt-page__info">
-              <span className={`status status--${apt.status}`}>{dict.statuses.apartment[apt.status]}</span>
+            {/* Слева — светлая карточка: заголовок, теги, планировка, параметры (как у fsk.ru) */}
+            <div className="apt-main">
               <h1 className="apt-page__title">{title}</h1>
-              {project && (
-                <Link href={`/${locale}/projects/${project.slug}`} className="apt-page__project">
-                  {dict.apartment.inProject} {project.title}
-                </Link>
+              <p className="apt-main__sub">
+                <span className={`status-text status-text--${apt.status}`}>{dict.statuses.apartment[apt.status]}</span>
+                {[apt.building, project?.floors ? `${dict.common.floor} ${dict.apartment.floorOf(apt.floor, project.floors)}` : `${dict.common.floor} ${apt.floor}`, `№ ${apt.number}`]
+                  .filter(Boolean)
+                  .join(', ')}
+              </p>
+              {tags.length > 0 && (
+                <div className="apt-main__tags">
+                  {tags.map((t) => (
+                    <span key={t}>{t}</span>
+                  ))}
+                </div>
               )}
-              <div className="apt-page__price">
-                <strong>{formatPrice(apt.price, locale)}</strong>
-                {apt.oldPrice ? <s>{formatPrice(apt.oldPrice, locale)}</s> : null}
-                {apt.pricePerSqm ? (
-                  <span>
-                    {formatPrice(apt.pricePerSqm, locale)} {dict.common.perSqm}
-                  </span>
-                ) : null}
-              </div>
-              <dl className="params">
+              {planTabs.length > 1 ? (
+                <PlanTabs tabs={planTabs} />
+              ) : (
+                <div className="apt-page__plan">
+                  <Img media={apt.plan} alt={`${dict.apartment.plan} ${title}`} size="hero" sizes="(max-width: 960px) 100vw, 60vw" priority zoom />
+                </div>
+              )}
+              <dl className="params apt-main__params">
                 {rows.map(([k, v]) => (
                   <div key={k}>
                     <dt>{k}</dt>
@@ -130,17 +151,79 @@ export default async function ApartmentPage({ params }: Props) {
                   </div>
                 ))}
               </dl>
-              {apt.status !== 'sold' && (
-                <div className="apt-page__form">
-                  <h2>{dict.apartment.request}</h2>
-                  <LeadForm
-                    locale={locale}
-                    dict={dict.form}
-                    hidden={{ type: 'apartment', apartment: apt.id, project: project?.id }}
-                  />
+            </div>
+
+            <aside className="apt-side">
+              {project && (
+                <Link href={`/${locale}/projects/${project.slug}`} className="apt-side__project">
+                  <Img media={project.cover} alt={project.title} size="card" className="apt-side__cover" sizes="(max-width: 960px) 100vw, 33vw" />
+                  <span className="apt-side__ptitle">{project.title}</span>
+                  <span className="apt-side__pline">
+                    {dict.apartment.inProject} {project.title}
+                    {project.district ? `, ${project.district}` : ''}
+                  </span>
+                </Link>
+              )}
+              <div className="apt-side__price panel">
+                <div className="apt-page__price">
+                  <strong>{formatPrice(apt.price, locale)}</strong>
+                  {apt.pricePerSqm ? (
+                    <span>
+                      {formatPrice(apt.pricePerSqm, locale)} {dict.common.perSqm}
+                    </span>
+                  ) : null}
+                </div>
+                {apt.oldPrice ? (
+                  <div className="apt-side__old">
+                    <s>{formatPrice(apt.oldPrice, locale)}</s>
+                    {discount > 0 && <span className="apt-page__discount">−{discount}%</span>}
+                  </div>
+                ) : null}
+                <div className="apt-side__actions">
+                  {apt.status === 'available' ? (
+                    <a href="#booking" className="btn btn--accent btn--block">
+                      {dict.booking.submit}
+                    </a>
+                  ) : (
+                    <a href="#ask" className="btn btn--accent btn--block">
+                      {dict.apartment.askPrice}
+                    </a>
+                  )}
+                  <CompareButton id={apt.id} labels={dict.compare} className="cmp-btn--inline" />
+                  <FavoriteButton kind="a" id={apt.id} labels={dict.favorites} />
+                </div>
+              </div>
+              {apt.status === 'available' && (
+                <div className="apt-page__form" id="booking">
+                  <h2>{dict.booking.title}</h2>
+                  <p className="booking-lead">{dict.booking.lead}</p>
+                  <ul className="booking-facts">
+                    <li>
+                      <span>{dict.booking.holdLabel}</span>
+                      <b>
+                        {settings.bookingHoldHours ?? 48} {dict.booking.hoursUnit}
+                      </b>
+                    </li>
+                    {settings.bookingDeposit ? (
+                      <li>
+                        <span>{dict.booking.depositLabel}</span>
+                        <b>{formatPrice(settings.bookingDeposit, locale)}</b>
+                      </li>
+                    ) : null}
+                  </ul>
+                  <BookingForm locale={locale} apartmentId={apt.id} dict={dict.booking} formDict={dict.form} />
+                  <Link href={`/${locale}/online-booking`} className="link-arrow booking-more">
+                    {dict.nav.onlineBooking} →
+                  </Link>
                 </div>
               )}
-            </div>
+              {apt.status !== 'available' && (
+                <div className="apt-page__form" id="ask">
+                  <h2>{dict.apartment.askPrice}</h2>
+                  <LeadForm locale={locale} dict={dict.form} hidden={{ type: 'apartment', apartment: apt.id, project: project?.id }} />
+                </div>
+              )}
+            </aside>
           </div>
         </div>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />

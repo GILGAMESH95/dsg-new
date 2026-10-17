@@ -40,9 +40,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   return [
     ...entry('', undefined, 1),
-    ...['/projects', '/apartments', '/about', '/blog', '/contacts'].flatMap((p) => entry(p, undefined, 0.8)),
+    ...['/projects', '/apartments', '/buy', '/online-booking', '/promo', '/about', '/about/news', '/support', '/documents', '/contacts'].flatMap((p) => entry(p, undefined, 0.8)),
     ...projects.docs.map((p) => entry(`/projects/${p.slug}`, p.updatedAt, 0.9)).flat(),
     ...apartments.docs.map((a) => entry(`/apartments/${a.id}`, a.updatedAt, 0.5)).flat(),
-    ...posts.docs.map((p) => entry(`/blog/${p.slug}`, p.updatedAt, 0.5)).flat(),
+    ...posts.docs.map((p) => entry(`/about/news/${p.slug}`, p.updatedAt, 0.5)).flat(),
   ]
 }

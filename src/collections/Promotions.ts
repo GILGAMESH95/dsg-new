@@ -1,6 +1,8 @@
 import { revalidateAfterChange, revalidateAfterDelete } from '../lib/revalidate'
 import type { CollectionConfig } from 'payload'
 
+import { slugField } from '../fields/slug'
+
 export const Promotions: CollectionConfig = {
   slug: 'promotions',
   labels: { singular: 'Акция', plural: 'Акции' },
@@ -23,7 +25,15 @@ export const Promotions: CollectionConfig = {
       label: 'Плашка (например, «−10%» или «0%»)',
       localized: true,
     },
-    { name: 'description', type: 'textarea', label: 'Описание', localized: true },
+    { name: 'description', type: 'textarea', label: 'Описание (для карточки)', localized: true },
+    { name: 'body', type: 'richText', label: 'Подробное описание', localized: true },
+    {
+      name: 'conditions',
+      type: 'textarea',
+      label: 'Условия акции (мелким шрифтом)',
+      localized: true,
+    },
+    slugField(),
     { name: 'image', type: 'upload', relationTo: 'media', label: 'Картинка' },
     { name: 'project', type: 'relationship', relationTo: 'projects', label: 'Жилой комплекс' },
     {

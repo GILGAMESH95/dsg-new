@@ -19,6 +19,13 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  // Новости переехали с /blog на /about/news — старые ссылки ведут на новые адреса
+  async redirects() {
+    return [
+      { source: '/:locale(ka|ru|en)/blog', destination: '/:locale/about/news', permanent: true },
+      { source: '/:locale(ka|ru|en)/blog/:slug', destination: '/:locale/about/news/:slug', permanent: true },
+    ]
+  },
   webpack: (webpackConfig) => {
     webpackConfig.resolve.extensionAlias = {
       '.cjs': ['.cts', '.cjs'],

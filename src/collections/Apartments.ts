@@ -1,6 +1,8 @@
 import { revalidateAfterChange, revalidateAfterDelete } from '../lib/revalidate'
 import type { CollectionConfig } from 'payload'
 
+import { featureLabelsRu, featureValues, finishLabelsRu, finishValues } from '../lib/apartmentOptions'
+
 export const apartmentStatuses = [
   { label: 'Свободна', value: 'available' },
   { label: 'Бронь', value: 'reserved' },
@@ -101,7 +103,48 @@ export const Apartments: CollectionConfig = {
         { name: 'renovated', type: 'checkbox', label: 'С ремонтом', defaultValue: false },
       ],
     },
+    {
+      type: 'row',
+      fields: [
+        { name: 'building', type: 'text', label: 'Корпус', admin: { description: 'Например: Корпус A' } },
+        {
+          name: 'finish',
+          type: 'select',
+          label: 'Отделка',
+          options: finishValues.map((value) => ({ value, label: finishLabelsRu[value] })),
+          defaultValue: 'none',
+        },
+      ],
+    },
+    {
+      name: 'features',
+      type: 'select',
+      label: 'Особенности планировки',
+      hasMany: true,
+      options: featureValues.map((value) => ({ value, label: featureLabelsRu[value] })),
+    },
     { name: 'plan', type: 'upload', relationTo: 'media', label: 'Планировка' },
+    {
+      name: 'extraImages',
+      type: 'array',
+      label: 'Дополнительные изображения (вкладки над планировкой)',
+      labels: { singular: 'Изображение', plural: 'Изображения' },
+      fields: [
+        {
+          name: 'kind',
+          type: 'select',
+          label: 'Вкладка',
+          required: true,
+          options: [
+            { label: 'Вид из окон', value: 'view' },
+            { label: 'На этаже', value: 'floor' },
+            { label: 'С размерами', value: 'dimensions' },
+            { label: 'Генплан', value: 'masterplan' },
+          ],
+        },
+        { name: 'image', type: 'upload', relationTo: 'media', label: 'Изображение', required: true },
+      ],
+    },
     {
       name: 'status',
       type: 'select',

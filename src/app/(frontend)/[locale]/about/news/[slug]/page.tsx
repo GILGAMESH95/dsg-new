@@ -35,7 +35,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!post) return {}
   return buildMetadata({
     locale,
-    path: `/blog/${slug}`,
+    path: `/about/news/${slug}`,
     title: post.seo?.title || post.title,
     description: post.seo?.description || post.excerpt,
     image: mediaUrl(post.seo?.image) || mediaUrl(post.cover, 'card'),
@@ -76,7 +76,8 @@ export default async function PostPage({ params }: Props) {
           <Breadcrumbs
             items={[
               { href: `/${locale}`, label: dict.common.breadcrumbsHome },
-              { href: `/${locale}/blog`, label: dict.nav.blog },
+              { href: `/${locale}/about`, label: dict.nav.about },
+              { href: `/${locale}/about/news`, label: dict.nav.blog },
             ]}
             current={post.title}
           />

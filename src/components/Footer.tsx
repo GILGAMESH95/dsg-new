@@ -3,12 +3,14 @@ import Link from 'next/link'
 import type { Locale } from '@/i18n/config'
 import type { Dictionary } from '@/i18n/dictionaries/ru'
 import { phoneHref, telegramHref, whatsappHref } from '@/lib/format'
+import { getPaymentMethods, getProjects } from '@/lib/queries'
 import type { SiteSetting } from '@/payload-types'
 
 import { FacebookIcon, InstagramIcon, TelegramIcon, WhatsappIcon, YoutubeIcon } from './icons'
 import { Logo } from './Logo'
 
-export function Footer({
+/** Подвал в стиле fsk.ru: логотип и телефон слева, три колонки ссылок, внизу контакты и соцсети */
+export async function Footer({
   locale,
   dict,
   settings,
@@ -17,7 +19,24 @@ export function Footer({
   dict: Dictionary
   settings: SiteSetting
 }) {
-  const nav = ['projects', 'apartments', 'about', 'blog', 'contacts'] as const
+  const [projects, methods] = await Promise.all([getProjects(locale), getPaymentMethods(locale)])
+
+  const realty = [
+    { label: dict.nav.apartments, href: `/${locale}/apartments` },
+    { label: dict.nav.projects, href: `/${locale}/projects` },
+    { label: dict.nav.onlineBooking, href: `/${locale}/online-booking` },
+    { label: dict.nav.promotions, href: `/${locale}/promo` },
+    { label: dict.nav.blog, href: `/${locale}/about/news` },
+    { label: dict.nav.favorites, href: `/${locale}/favorites` },
+  ]
+  const terms = [
+    ...methods.map((m) => ({ label: m.title, href: `/${locale}/buy/${m.slug ?? m.id}` })),
+    { label: dict.nav.buy, href: `/${locale}/buy` },
+    { label: dict.nav.about, href: `/${locale}/about` },
+    { label: dict.nav.contacts, href: `/${locale}/contacts` },
+    { label: dict.nav.documents, href: `/${locale}/documents` },
+    { label: dict.nav.support, href: `/${locale}/support` },
+  ]
   const socials = [
     { href: settings.instagram, icon: InstagramIcon, label: 'Instagram' },
     { href: settings.facebook, icon: FacebookIcon, label: 'Facebook' },
@@ -25,68 +44,84 @@ export function Footer({
   ].filter((s) => s.href)
 
   return (
-    <footer className="footer">
-      <div className="container footer__grid">
-        <div className="footer__brand">
-          <Logo />
-          <p>{dict.footer.about}</p>
-          {socials.length > 0 && (
-            <div className="footer__socials">
-              {socials.map(({ href, icon: Icon, label }) => (
-                <a key={label} href={href!} target="_blank" rel="noopener" aria-label={label}>
-                  <Icon />
-                </a>
-              ))}
-            </div>
+    <footer className="ft">
+      <div className="container ft__top">
+        <div className="ft__brand">
+          <Link href={`/${locale}`} aria-label="DS Group">
+            <Logo />
+          </Link>
+          {settings.phone && (
+            <>
+              <span className="ft__divider" aria-hidden />
+              <a href={phoneHref(settings.phone)} className="ft__phone">
+                {settings.phone}
+              </a>
+            </>
           )}
         </div>
-        <div>
-          <h3 className="footer__title">{dict.footer.navigation}</h3>
-          <ul className="footer__list">
-            {nav.map((key) => (
-              <li key={key}>
-                <Link href={`/${locale}/${key}`}>{dict.nav[key]}</Link>
+
+        <nav className="ft__col ft__col--projects" aria-label={dict.footer.projects}>
+          <h3>{dict.footer.projects}</h3>
+          <ul>
+            {projects.map((p) => (
+              <li key={p.id}>
+                <Link href={`/${locale}/projects/${p.slug}`}>{p.title}</Link>
               </li>
             ))}
           </ul>
-        </div>
-        <div>
-          <h3 className="footer__title">{dict.footer.contacts}</h3>
-          <ul className="footer__list">
-            {settings.phone && (
-              <li>
-                <a href={phoneHref(settings.phone)} className="footer__phone">
-                  {settings.phone}
-                </a>
+        </nav>
+
+        <nav className="ft__col" aria-label={dict.footer.realty}>
+          <h3>{dict.footer.realty}</h3>
+          <ul>
+            {realty.map((l) => (
+              <li key={l.href}>
+                <Link href={l.href}>{l.label}</Link>
               </li>
-            )}
-            {settings.email && (
-              <li>
-                <a href={`mailto:${settings.email}`}>{settings.email}</a>
-              </li>
-            )}
-            {settings.address && <li>{settings.address}</li>}
-            {settings.workingHours && <li>{settings.workingHours}</li>}
+            ))}
           </ul>
-          <div className="footer__messengers">
-            {settings.whatsapp && (
-              <a href={whatsappHref(settings.whatsapp)} target="_blank" rel="noopener" className="btn btn--ghost btn--sm">
-                <WhatsappIcon /> WhatsApp
-              </a>
-            )}
-            {settings.telegram && (
-              <a href={telegramHref(settings.telegram)} target="_blank" rel="noopener" className="btn btn--ghost btn--sm">
-                <TelegramIcon /> Telegram
-              </a>
-            )}
-          </div>
-        </div>
+        </nav>
+
+        <nav className="ft__col" aria-label={dict.footer.terms}>
+          <h3>{dict.footer.terms}</h3>
+          <ul>
+            {terms.map((l) => (
+              <li key={l.href}>
+                <Link href={l.href}>{l.label}</Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
       </div>
-      <div className="container footer__bottom">
-        <span>
-          © {new Date().getFullYear()} DS Group. {dict.footer.rights}
-        </span>
-        <span>dsg.ge</span>
+
+      <div className="container ft__bottom">
+        <div className="ft__legal">
+          <span>
+            © {new Date().getFullYear()} DS Group. {dict.footer.rights}
+          </span>
+          <span className="ft__contacts">
+            {settings.email && <a href={`mailto:${settings.email}`}>{settings.email}</a>}
+            {settings.address && <span>{settings.address}</span>}
+            {settings.workingHours && <span>{settings.workingHours}</span>}
+          </span>
+        </div>
+        <div className="ft__social">
+          {settings.whatsapp && (
+            <a href={whatsappHref(settings.whatsapp)} target="_blank" rel="noopener" aria-label="WhatsApp">
+              <WhatsappIcon />
+            </a>
+          )}
+          {settings.telegram && (
+            <a href={telegramHref(settings.telegram)} target="_blank" rel="noopener" aria-label="Telegram">
+              <TelegramIcon />
+            </a>
+          )}
+          {socials.map(({ href, icon: Icon, label }) => (
+            <a key={label} href={href!} target="_blank" rel="noopener" aria-label={label}>
+              <Icon />
+            </a>
+          ))}
+        </div>
       </div>
     </footer>
   )

@@ -1,9 +1,9 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 
-import { ProjectCard } from '@/components/Cards'
 import { CtaSection } from '@/components/CtaSection'
-import { PageHero, SectionHead } from '@/components/Section'
+import { ProjectGrid } from '@/components/ProjectGrid'
+import { PageHero } from '@/components/Section'
 import { getDictionary } from '@/i18n'
 import { isLocale } from '@/i18n/config'
 import { getProjects, getProjectStats } from '@/lib/queries'
@@ -23,8 +23,6 @@ export default async function ProjectsPage({ params }: Props) {
   if (!isLocale(locale)) notFound()
   const dict = getDictionary(locale)
   const [projects, stats] = await Promise.all([getProjects(locale), getProjectStats()])
-  const active = projects.filter((p) => p.status !== 'completed')
-  const completed = projects.filter((p) => p.status === 'completed')
 
   return (
     <>
@@ -35,26 +33,9 @@ export default async function ProjectsPage({ params }: Props) {
       />
       <section className="section section--tight">
         <div className="container">
-          <SectionHead title={dict.project.sellingTitle} />
-          <div className="grid grid--2">
-            {active.map((p) => (
-              <ProjectCard key={p.id} project={p} locale={locale} dict={dict} priceFrom={stats[p.id]?.priceFrom} available={stats[p.id]?.available} />
-            ))}
-          </div>
+          <ProjectGrid projects={projects} locale={locale} dict={dict} stats={stats} />
         </div>
       </section>
-      {completed.length > 0 && (
-        <section className="section section--tight">
-          <div className="container">
-            <SectionHead title={dict.project.completedTitle} />
-            <div className="grid grid--3">
-              {completed.map((p) => (
-                <ProjectCard key={p.id} project={p} locale={locale} dict={dict} />
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
       <CtaSection locale={locale} dict={dict} />
     </>
   )

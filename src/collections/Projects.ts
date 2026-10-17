@@ -44,6 +44,14 @@ export const Projects: CollectionConfig = {
               label: 'Краткое описание (для карточки)',
               localized: true,
             },
+            {
+              name: 'tags',
+              type: 'array',
+              label: 'Теги на карточке (скидка, рассрочка…)',
+              labels: { singular: 'Тег', plural: 'Теги' },
+              maxRows: 4,
+              fields: [{ name: 'text', type: 'text', label: 'Текст', localized: true }],
+            },
             { name: 'description', type: 'richText', label: 'Описание', localized: true },
             {
               type: 'row',
@@ -65,7 +73,175 @@ export const Projects: CollectionConfig = {
               type: 'array',
               label: 'Преимущества',
               labels: { singular: 'Преимущество', plural: 'Преимущества' },
+              fields: [
+                { name: 'text', type: 'text', label: 'Текст', localized: true },
+                { name: 'image', type: 'upload', relationTo: 'media', label: 'Фото (необязательно)' },
+              ],
+            },
+          ],
+        },
+        {
+          label: 'Страница проекта',
+          fields: [
+            {
+              type: 'row',
+              fields: [
+                {
+                  name: 'presentation',
+                  type: 'upload',
+                  relationTo: 'documents',
+                  label: 'Презентация проекта (PDF)',
+                },
+                {
+                  name: 'videoUrl',
+                  type: 'text',
+                  label: 'Ссылка на видео (YouTube и т. п.)',
+                },
+              ],
+            },
+            {
+              name: 'masterplan',
+              type: 'upload',
+              relationTo: 'media',
+              label: 'Генплан (картинка)',
+            },
+            {
+              name: 'highlights',
+              type: 'array',
+              label: 'Кратко о главном (тезисы)',
+              labels: { singular: 'Тезис', plural: 'Тезисы' },
               fields: [{ name: 'text', type: 'text', label: 'Текст', localized: true }],
+            },
+            {
+              name: 'livingIs',
+              type: 'array',
+              label: 'Жить здесь — это…',
+              labels: { singular: 'Пункт', plural: 'Пункты' },
+              fields: [
+                { name: 'text', type: 'text', label: 'Продолжение фразы', localized: true },
+                { name: 'image', type: 'upload', relationTo: 'media', label: 'Фото (необязательно)' },
+              ],
+            },
+            {
+              name: 'buildings',
+              type: 'array',
+              label: 'Корпуса',
+              labels: { singular: 'Корпус', plural: 'Корпуса' },
+              fields: [
+                {
+                  type: 'row',
+                  fields: [
+                    { name: 'name', type: 'text', label: 'Название', required: true, localized: true },
+                    { name: 'completion', type: 'text', label: 'Срок сдачи', localized: true },
+                    { name: 'totalApartments', type: 'number', label: 'Всего квартир' },
+                  ],
+                },
+                {
+                  type: 'row',
+                  fields: [
+                    {
+                      name: 'markerX',
+                      type: 'number',
+                      label: 'Метка на генплане: слева, %',
+                      min: 0,
+                      max: 100,
+                      admin: { description: '0 — левый край картинки, 100 — правый' },
+                    },
+                    {
+                      name: 'markerY',
+                      type: 'number',
+                      label: 'Метка на генплане: сверху, %',
+                      min: 0,
+                      max: 100,
+                      admin: { description: '0 — верх картинки, 100 — низ' },
+                    },
+                  ],
+                },
+                {
+                  name: 'types',
+                  type: 'array',
+                  label: 'Типы квартир',
+                  labels: { singular: 'Тип', plural: 'Типы' },
+                  fields: [
+                    {
+                      type: 'row',
+                      fields: [
+                        { name: 'rooms', type: 'number', label: 'Комнат (0 — студия)', required: true, min: 0 },
+                        { name: 'count', type: 'number', label: 'Количество' },
+                        { name: 'priceFrom', type: 'number', label: 'Цена от, $' },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              name: 'layouts',
+              type: 'array',
+              label: 'Планировки',
+              labels: { singular: 'Планировка', plural: 'Планировки' },
+              fields: [
+                { name: 'plan', type: 'upload', relationTo: 'media', label: 'Схема', required: true },
+                {
+                  type: 'row',
+                  fields: [
+                    { name: 'rooms', type: 'number', label: 'Комнат (0 — студия)', required: true, min: 0 },
+                    { name: 'area', type: 'number', label: 'Площадь, м²', required: true },
+                    { name: 'building', type: 'text', label: 'Корпус', localized: true },
+                    { name: 'priceFrom', type: 'number', label: 'Цена от, $' },
+                    { name: 'priceFromGelPerSqm', type: 'number', label: 'Цена от, ₾ за м²' },
+                  ],
+                },
+              ],
+            },
+            {
+              name: 'infrastructure',
+              type: 'array',
+              label: 'Инфраструктура рядом',
+              labels: { singular: 'Объект', plural: 'Объекты' },
+              fields: [
+                { name: 'image', type: 'upload', relationTo: 'media', label: 'Фото (необязательно)' },
+                {
+                  type: 'row',
+                  fields: [
+                    {
+                      name: 'category',
+                      type: 'select',
+                      label: 'Категория',
+                      defaultValue: 'other',
+                      options: [
+                        { label: 'Здоровье', value: 'health' },
+                        { label: 'Спорт', value: 'sport' },
+                        { label: 'Магазины', value: 'shops' },
+                        { label: 'Образование', value: 'education' },
+                        { label: 'Кафе и рестораны', value: 'cafe' },
+                        { label: 'Парки', value: 'parks' },
+                        { label: 'Театры, музеи', value: 'culture' },
+                        { label: 'Другое', value: 'other' },
+                      ],
+                    },
+                    { name: 'lat', type: 'number', label: 'Широта (для карты)' },
+                    { name: 'lng', type: 'number', label: 'Долгота (для карты)' },
+                  ],
+                },
+                {
+                  type: 'row',
+                  fields: [
+                    { name: 'name', type: 'text', label: 'Название', required: true, localized: true },
+                    { name: 'minutes', type: 'number', label: 'Минут', required: true },
+                    {
+                      name: 'mode',
+                      type: 'select',
+                      label: 'Как добраться',
+                      defaultValue: 'walk',
+                      options: [
+                        { label: 'Пешком', value: 'walk' },
+                        { label: 'На машине', value: 'car' },
+                      ],
+                    },
+                  ],
+                },
+              ],
             },
           ],
         },
@@ -77,7 +253,16 @@ export const Projects: CollectionConfig = {
               name: 'gallery',
               type: 'array',
               label: 'Галерея',
-              fields: [{ name: 'image', type: 'upload', relationTo: 'media', required: true }],
+              fields: [
+                { name: 'image', type: 'upload', relationTo: 'media', required: true },
+                {
+                  name: 'category',
+                  type: 'text',
+                  label: 'Раздел галереи (вкладка)',
+                  localized: true,
+                  admin: { description: 'Например: Виды из окон, Парк, Лобби. Одинаковые названия объединяются во вкладку.' },
+                },
+              ],
             },
           ],
         },

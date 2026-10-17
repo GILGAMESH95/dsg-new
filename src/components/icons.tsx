@@ -37,6 +37,84 @@ export const ArrowIcon = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 )
 
+export const HeartIcon = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z" />
+  </svg>
+)
+
+export const WalkIcon = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base({ fill: 'currentColor', stroke: 'none', ...p })}>
+    <path d="M13.5 5.5a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM9.8 8.9 7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3A7.3 7.3 0 0 0 19 13v-2a5.1 5.1 0 0 1-4.3-2.4l-1-1.6a2 2 0 0 0-1.7-1c-.3 0-.5 0-.8.2L6 8.3V13h2V9.6l1.8-.7" />
+  </svg>
+)
+
+export const KeyIcon =(p: SVGProps<SVGSVGElement>) => (
+  <svg {...base({ fill: 'currentColor', stroke: 'none', ...p })}>
+    <path d="M7.5 14a5.5 5.5 0 1 1 5.2-3.7l7.3 7.3V21h-3.2v-1.7H15v-1.7h-1.6l-1.9-1.9a5.5 5.5 0 0 1-4 .3zM7 8.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z" />
+  </svg>
+)
+
+export const HomeIcon = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <path d="M3 11.5 12 4l9 7.5M5.5 10v10h13V10" />
+  </svg>
+)
+
+export const FlameIcon = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <path d="M12 22c4 0 7-2.8 7-6.7 0-2.7-1.4-4.6-3-6.3-1-1.1-1.7-2.3-1.6-4.2C11.8 6 9 9 9 12c-1.2-.5-1.8-1.7-1.8-3C5.6 10.6 5 12.6 5 15.3 5 19.2 8 22 12 22z" />
+  </svg>
+)
+
+export const UserIcon =(p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <path d="M20 21a8 8 0 0 0-16 0M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" />
+  </svg>
+)
+
+export const CompareIcon =(p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <path d="M6 20V10M12 20V4M18 20v-7" />
+  </svg>
+)
+
+export const BuildingIcon =(p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <path d="M4 21V5l8-3 8 3v16M2 21h20M9 9h2M13 9h2M9 13h2M13 13h2M9 17h2M13 17h2" />
+  </svg>
+)
+
+export const LayersIcon = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <path d="m12 3 9 5-9 5-9-5 9-5zM3 13l9 5 9-5M3 17.5l9 5 9-5" />
+  </svg>
+)
+
+export const CalendarIcon = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <path d="M7 3v4M17 3v4M4 9h16M5 5h14a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z" />
+  </svg>
+)
+
+export const WaveIcon = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <path d="M2 8c2.5 0 2.5 2 5 2s2.5-2 5-2 2.5 2 5 2 2.5-2 5-2M2 14c2.5 0 2.5 2 5 2s2.5-2 5-2 2.5 2 5 2 2.5-2 5-2" />
+  </svg>
+)
+
+export const PlayIcon = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base({ fill: 'currentColor', stroke: 'none', ...p })}>
+    <path d="M8 5v14l11-7z" />
+  </svg>
+)
+
+export const FileIcon = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5" />
+  </svg>
+)
+
 export const CloseIcon = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)}>
     <path d="M18 6 6 18M6 6l12 12" />

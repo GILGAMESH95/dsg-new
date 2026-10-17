@@ -1,16 +1,19 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
-import { ApartmentCard, PostCard, ProjectCard, PromoCard } from '@/components/Cards'
+import { Calculator } from '@/components/Calculator'
+import { ApartmentCard, PostCard } from '@/components/Cards'
 import { CtaSection } from '@/components/CtaSection'
 import { ArrowIcon } from '@/components/icons'
 import { Img } from '@/components/Img'
 import { LeadButton } from '@/components/LeadModal'
+import { ProjectGrid } from '@/components/ProjectGrid'
+import { ScrollStrip } from '@/components/ScrollStrip'
 import { SectionHead } from '@/components/Section'
 import { getDictionary } from '@/i18n'
 import { isLocale } from '@/i18n/config'
 import { getPayloadClient, getSettings } from '@/lib/payload'
-import { getActivePromotions, getLatestPosts, getProjects, getProjectStats } from '@/lib/queries'
+import { getActivePromotions, getLatestPosts, getPaymentMethods, getProjects, getProjectStats } from '@/lib/queries'
 
 export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params
@@ -18,12 +21,13 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   const dict = getDictionary(locale)
   const payload = await getPayloadClient()
 
-  const [settings, projects, stats, promotions, posts, apartments] = await Promise.all([
+  const [settings, projects, stats, promotions, posts, methods, apartments] = await Promise.all([
     getSettings(locale),
     getProjects(locale, { featured: true }),
     getProjectStats(),
-    getActivePromotions(locale, 3),
-    getLatestPosts(locale, 3),
+    getActivePromotions(locale, 8),
+    getLatestPosts(locale, 8),
+    getPaymentMethods(locale),
     payload.find({
       collection: 'apartments',
       locale,
@@ -34,9 +38,29 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
     }),
   ])
 
+  const arrows = { prev: dict.project.prev, next: dict.project.next }
+  const installment = methods.find((m) => m.showCalculator)
+
+  // «Кратко о главном»: акции карточками-историями, затем цифры компании
+  const stories = [
+    ...promotions.map((p) => ({
+      key: `p-${p.id}`,
+      href: `/${locale}/promo/${p.slug ?? p.id}`,
+      badge: p.badge,
+      title: p.title,
+      image: p.image,
+    })),
+    ...(settings.stats ?? []).map((s) => ({ key: `s-${s.id}`, href: `/${locale}/about`, badge: s.value, title: s.label, image: null })),
+  ]
+
+  const advantages = [
+    ...dict.home.why.map((w) => ({ title: w.title, text: w.text })),
+    ...dict.home.invest.map((v) => ({ title: v.value, text: v.label })),
+  ]
+
   return (
     <>
-      <section className="hero">
+      <section className="hero hero--compact">
         <Img media={settings.heroImage} alt="DS Group" size="hero" className="hero__bg" priority />
         <div className="hero__shade" />
         <div className="container hero__content">
@@ -47,70 +71,108 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
             <Link href={`/${locale}/apartments`} className="btn btn--accent btn--lg">
               {dict.hero.primary}
             </Link>
-            <Link href={`/${locale}/projects`} className="btn btn--ghost btn--lg">
-              {dict.common.allProjects}
+            <Link href={`/${locale}/buy`} className="btn btn--ghost btn--lg">
+              {dict.nav.buy}
             </Link>
           </div>
-          {settings.stats && settings.stats.length > 0 && (
-            <dl className="hero__stats">
-              {settings.stats.map((s) => (
-                <div key={s.id}>
-                  <dt>{s.value}</dt>
-                  <dd>{s.label}</dd>
-                </div>
-              ))}
-            </dl>
-          )}
         </div>
       </section>
 
-      <section className="section">
+      {stories.length > 0 && (
+        <section className="section section--tight">
+          <div className="container">
+            <SectionHead title={dict.home.glanceTitle} />
+            <ScrollStrip labels={arrows} variant="overlay">
+              {stories.map((s) => (
+                <Link key={s.key} href={s.href} className={`story ${s.image ? 'story--photo' : ''}`}>
+                  {s.image && <Img media={s.image} alt={s.title} size="card" className="story__img" sizes="260px" />}
+                  {s.badge && <b>{s.badge}</b>}
+                  <span>{s.title}</span>
+                </Link>
+              ))}
+            </ScrollStrip>
+          </div>
+        </section>
+      )}
+
+      <section id="catalog" className="section section--tight anchor">
         <div className="container">
           <SectionHead
             title={dict.home.projectsTitle}
             lead={dict.home.projectsLead}
             link={{ href: `/${locale}/projects`, label: dict.common.allProjects }}
           />
-          <div className="grid grid--2">
-            {projects.map((p) => (
-              <ProjectCard
-                key={p.id}
-                project={p}
-                locale={locale}
-                dict={dict}
-                priceFrom={stats[p.id]?.priceFrom}
-                available={stats[p.id]?.available}
+          <ProjectGrid
+            projects={projects}
+            locale={locale}
+            dict={dict}
+            stats={stats}
+            pageSize={6}
+            extra={
+              <div className="grid-promo">
+                <span>{dict.home.gridPromoTitle}</span>
+                <strong>{installment?.title ?? dict.nav.buy}</strong>
+                <LeadButton type="consultation" title={dict.common.consultation} className="btn btn--accent">
+                  {dict.common.consultation}
+                </LeadButton>
+              </div>
+            }
+          />
+        </div>
+      </section>
+
+      <section className="section section--tight">
+        <div className="container">
+          <div className="panel panel--glow home-buy">
+            <div className="home-buy__head">
+              <h2 className="panel__title">{dict.home.buyTitle}</h2>
+              <p>{dict.home.buyLead}</p>
+              <div className="home-buy__tabs">
+                {methods.map((m) => (
+                  <Link key={m.id} href={`/${locale}/buy/${m.slug ?? m.id}`} className="layouts__chip">
+                    {m.title}
+                  </Link>
+                ))}
+                <Link href={`/${locale}/buy`} className="link-arrow">
+                  {dict.project.buyAll} <ArrowIcon width={18} height={18} />
+                </Link>
+              </div>
+            </div>
+            <div className="home-buy__calc">
+              <Calculator
+                dict={dict.calculator}
+                minDown={installment?.calcMinDown ?? 20}
+                maxMonths={installment?.calcMaxMonths ?? 36}
               />
-            ))}
+            </div>
           </div>
         </div>
       </section>
 
-      {promotions.length > 0 && (
-        <section className="section section--dark">
-          <div className="container">
-            <SectionHead title={dict.home.promoTitle} lead={dict.home.promoLead} />
-            <div className="grid grid--3">
-              {promotions.map((promo) => (
-                <PromoCard key={promo.id} promo={promo} locale={locale} dict={dict}>
-                  <LeadButton
-                    className="link-arrow"
-                    type="promotion"
-                    title={promo.title}
-                    details={promo.title}
-                    project={typeof promo.project === 'object' ? promo.project?.id : promo.project ?? undefined}
-                  >
-                    {dict.common.consultation} <ArrowIcon width={18} height={18} />
-                  </LeadButton>
-                </PromoCard>
-              ))}
+      <section className="section section--tight">
+        <div className="container">
+          <div className="standard">
+            <Img media={settings.heroImage} alt="" size="hero" className="standard__bg" sizes="100vw" />
+            <div className="standard__shade" />
+            <div className="standard__body">
+              <h2 className="panel__title">{dict.home.standardTitle}</h2>
+              <p>{dict.home.standardLead}</p>
+              <ScrollStrip labels={arrows} className="strip--on-dark">
+                {advantages.map((a, i) => (
+                  <div key={a.title} className="standard__tile">
+                    <span>{String(i + 1).padStart(2, '0')}</span>
+                    <h3>{a.title}</h3>
+                    <p>{a.text}</p>
+                  </div>
+                ))}
+              </ScrollStrip>
             </div>
           </div>
-        </section>
-      )}
+        </div>
+      </section>
 
       {apartments.docs.length > 0 && (
-        <section className="section">
+        <section className="section section--tight">
           <div className="container">
             <SectionHead
               title={dict.home.apartmentsTitle}
@@ -126,30 +188,15 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         </section>
       )}
 
-      <section className="section section--warm">
-        <div className="container">
-          <SectionHead title={dict.home.whyTitle} />
-          <div className="why">
-            {dict.home.why.map((item, i) => (
-              <div key={item.title} className="why__item">
-                <span className="why__num">0{i + 1}</span>
-                <h3>{item.title}</h3>
-                <p>{item.text}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {posts.length > 0 && (
-        <section className="section">
+        <section className="section section--tight">
           <div className="container">
-            <SectionHead title={dict.home.newsTitle} link={{ href: `/${locale}/blog`, label: dict.common.allNews }} />
-            <div className="grid grid--3">
+            <SectionHead title={dict.home.newsTitle} link={{ href: `/${locale}/about/news`, label: dict.common.allNews }} />
+            <ScrollStrip labels={arrows} className="strip--news">
               {posts.map((post) => (
                 <PostCard key={post.id} post={post} locale={locale} dict={dict} />
               ))}
-            </div>
+            </ScrollStrip>
           </div>
         </section>
       )}

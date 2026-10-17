@@ -50,3 +50,6 @@ node_modules/
 /playwright/.cache/
 media/
 .pnpm-store/
+
+# Загруженные документы (коллекция documents)
+/documents

@@ -10,10 +10,14 @@ type Props = {
   className?: string
   sizes?: string
   priority?: boolean
+  /** Клик открывает фото на весь экран (см. ImageLightbox) */
+  zoom?: boolean
+  /** Показать фото целиком (contain), а свободное место заполнить размытой копией */
+  blurFill?: boolean
 }
 
 /** Картинка из админки. Если фото ещё нет — аккуратная заглушка в фирменном стиле. */
-export function Img({ media, alt = '', size, className = '', sizes = '100vw', priority }: Props) {
+export function Img({ media, alt = '', size, className = '', sizes = '100vw', priority, zoom, blurFill }: Props) {
   const src = mediaUrl(media, size)
   if (!src) {
     return (
@@ -22,8 +26,18 @@ export function Img({ media, alt = '', size, className = '', sizes = '100vw', pr
       </div>
     )
   }
+  const zoomProps = zoom
+    ? {
+        'data-lb-src': mediaUrl(media, 'hero') ?? src,
+        'data-lb-alt': mediaAlt(media, alt),
+        role: 'button',
+        tabIndex: 0,
+        'aria-label': mediaAlt(media, alt) || 'Open image',
+      }
+    : {}
   return (
-    <div className={`img ${className}`}>
+    <div className={`img ${zoom ? 'is-zoomable' : ''} ${blurFill ? 'img--fit' : ''} ${className}`} {...zoomProps}>
+      {blurFill && <Image src={src} alt="" aria-hidden fill sizes="25vw" className="img__blur" />}
       <Image src={src} alt={mediaAlt(media, alt)} fill sizes={sizes} priority={priority} />
     </div>
   )

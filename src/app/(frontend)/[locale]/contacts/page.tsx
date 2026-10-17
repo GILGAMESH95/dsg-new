@@ -81,16 +81,16 @@ export default async function ContactsPage({ params }: Props) {
                 </div>
               )}
             </dl>
-            {s.officeLat && s.officeLng && (
-              <div className="map">
+            {(s.officeLat && s.officeLng) || s.address ? (
+              <div className="map-frame contacts__map">
                 <iframe
                   title="DS Group"
-                  src={`https://maps.google.com/maps?q=${s.officeLat},${s.officeLng}&z=16&output=embed`}
+                  src={`https://maps.google.com/maps?q=${s.officeLat && s.officeLng ? `${s.officeLat},${s.officeLng}` : encodeURIComponent(s.address ?? '')}&z=16&output=embed`}
                   loading="lazy"
                   referrerPolicy="no-referrer-when-downgrade"
                 />
               </div>
-            )}
+            ) : null}
           </div>
           <div className="contacts__form">
             <h2>{c.formTitle}</h2>

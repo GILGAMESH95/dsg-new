@@ -70,8 +70,16 @@ export interface Config {
     projects: Project;
     apartments: Apartment;
     promotions: Promotion;
+    'payment-methods': PaymentMethod;
     leads: Lead;
+    bookings: Booking;
+    clients: Client;
+    'client-notifications': ClientNotification;
+    'support-requests': SupportRequest;
+    subscribers: Subscriber;
     posts: Post;
+    faqs: Faq;
+    documents: Document;
     media: Media;
     users: User;
     'payload-kv': PayloadKv;
@@ -84,8 +92,16 @@ export interface Config {
     projects: ProjectsSelect<false> | ProjectsSelect<true>;
     apartments: ApartmentsSelect<false> | ApartmentsSelect<true>;
     promotions: PromotionsSelect<false> | PromotionsSelect<true>;
+    'payment-methods': PaymentMethodsSelect<false> | PaymentMethodsSelect<true>;
     leads: LeadsSelect<false> | LeadsSelect<true>;
+    bookings: BookingsSelect<false> | BookingsSelect<true>;
+    clients: ClientsSelect<false> | ClientsSelect<true>;
+    'client-notifications': ClientNotificationsSelect<false> | ClientNotificationsSelect<true>;
+    'support-requests': SupportRequestsSelect<false> | SupportRequestsSelect<true>;
+    subscribers: SubscribersSelect<false> | SubscribersSelect<true>;
     posts: PostsSelect<false> | PostsSelect<true>;
+    faqs: FaqsSelect<false> | FaqsSelect<true>;
+    documents: DocumentsSelect<false> | DocumentsSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
@@ -140,6 +156,12 @@ export interface Project {
   title: string;
   tagline?: string | null;
   excerpt?: string | null;
+  tags?:
+    | {
+        text?: string | null;
+        id?: string | null;
+      }[]
+    | null;
   description?: {
     root: {
       type: string;
@@ -163,6 +185,70 @@ export interface Project {
   features?:
     | {
         text?: string | null;
+        image?: (number | null) | Media;
+        id?: string | null;
+      }[]
+    | null;
+  presentation?: (number | null) | Document;
+  videoUrl?: string | null;
+  masterplan?: (number | null) | Media;
+  highlights?:
+    | {
+        text?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  livingIs?:
+    | {
+        text?: string | null;
+        image?: (number | null) | Media;
+        id?: string | null;
+      }[]
+    | null;
+  buildings?:
+    | {
+        name: string;
+        completion?: string | null;
+        totalApartments?: number | null;
+        /**
+         * 0 — левый край картинки, 100 — правый
+         */
+        markerX?: number | null;
+        /**
+         * 0 — верх картинки, 100 — низ
+         */
+        markerY?: number | null;
+        types?:
+          | {
+              rooms: number;
+              count?: number | null;
+              priceFrom?: number | null;
+              id?: string | null;
+            }[]
+          | null;
+        id?: string | null;
+      }[]
+    | null;
+  layouts?:
+    | {
+        plan: number | Media;
+        rooms: number;
+        area: number;
+        building?: string | null;
+        priceFrom?: number | null;
+        priceFromGelPerSqm?: number | null;
+        id?: string | null;
+      }[]
+    | null;
+  infrastructure?:
+    | {
+        image?: (number | null) | Media;
+        category?: ('health' | 'sport' | 'shops' | 'education' | 'cafe' | 'parks' | 'culture' | 'other') | null;
+        lat?: number | null;
+        lng?: number | null;
+        name: string;
+        minutes: number;
+        mode?: ('walk' | 'car') | null;
         id?: string | null;
       }[]
     | null;
@@ -170,6 +256,10 @@ export interface Project {
   gallery?:
     | {
         image: number | Media;
+        /**
+         * Например: Виды из окон, Парк, Лобби. Одинаковые названия объединяются во вкладку.
+         */
+        category?: string | null;
         id?: string | null;
       }[]
     | null;
@@ -252,6 +342,28 @@ export interface Media {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "documents".
+ */
+export interface Document {
+  id: number;
+  title: string;
+  description?: string | null;
+  category: 'permits' | 'contracts' | 'presentations' | 'other';
+  order?: number | null;
+  updatedAt: string;
+  createdAt: string;
+  url?: string | null;
+  thumbnailURL?: string | null;
+  filename?: string | null;
+  mimeType?: string | null;
+  filesize?: number | null;
+  width?: number | null;
+  height?: number | null;
+  focalX?: number | null;
+  focalY?: number | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "apartments".
  */
 export interface Apartment {
@@ -271,7 +383,20 @@ export interface Apartment {
   view?: ('sea' | 'mountains' | 'city')[] | null;
   hasBalcony?: boolean | null;
   renovated?: boolean | null;
+  /**
+   * Например: Корпус A
+   */
+  building?: string | null;
+  finish?: ('none' | 'whiteFrame' | 'renovated' | 'furnished') | null;
+  features?: ('loggia' | 'euro' | 'bigKitchen' | 'masterZone' | 'corner' | 'twoLevel' | 'panoramic')[] | null;
   plan?: (number | null) | Media;
+  extraImages?:
+    | {
+        kind: 'view' | 'floor' | 'dimensions' | 'masterplan';
+        image: number | Media;
+        id?: string | null;
+      }[]
+    | null;
   status: 'available' | 'reserved' | 'sold';
   promo?: boolean | null;
   updatedAt: string;
@@ -286,10 +411,82 @@ export interface Promotion {
   title: string;
   badge?: string | null;
   description?: string | null;
+  body?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  conditions?: string | null;
+  /**
+   * Заполняется автоматически из названия. Латиница, цифры и дефисы.
+   */
+  slug?: string | null;
   image?: (number | null) | Media;
   project?: (number | null) | Project;
   validUntil?: string | null;
   active?: boolean | null;
+  order?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payment-methods".
+ */
+export interface PaymentMethod {
+  id: number;
+  title: string;
+  summary?: string | null;
+  /**
+   * Например: «Первый взнос» — «от 20%»
+   */
+  terms?:
+    | {
+        label: string;
+        value: string;
+        id?: string | null;
+      }[]
+    | null;
+  body?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  steps?:
+    | {
+        title: string;
+        text?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  conditions?: string | null;
+  /**
+   * Заполняется автоматически из названия. Латиница, цифры и дефисы.
+   */
+  slug?: string | null;
+  showCalculator?: boolean | null;
+  calcMinDown?: number | null;
+  calcMaxMonths?: number | null;
   order?: number | null;
   updatedAt: string;
   createdAt: string;
@@ -313,6 +510,103 @@ export interface Lead {
   utm?: string | null;
   status?: ('new' | 'in_progress' | 'won' | 'lost') | null;
   note?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "bookings".
+ */
+export interface Booking {
+  id: number;
+  apartment: number | Apartment;
+  project?: (number | null) | Project;
+  name: string;
+  phone: string;
+  email?: string | null;
+  client?: (number | null) | Client;
+  contactMethod?: string | null;
+  message?: string | null;
+  priceAtBooking?: number | null;
+  holdUntil?: string | null;
+  page?: string | null;
+  locale?: string | null;
+  utm?: string | null;
+  status: 'new' | 'confirmed' | 'paid' | 'cancelled' | 'expired';
+  note?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "clients".
+ */
+export interface Client {
+  id: number;
+  email: string;
+  name?: string | null;
+  phone?: string | null;
+  locale?: string | null;
+  favoriteApartments?: (number | Apartment)[] | null;
+  favoriteProjects?: (number | Project)[] | null;
+  savedSearches?:
+    | {
+        name: string;
+        query?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  passwordHash?: string | null;
+  passwordSalt?: string | null;
+  sessionVersion?: number | null;
+  failedAttempts?: number | null;
+  lockedUntil?: string | null;
+  resetTokenHash?: string | null;
+  resetExpires?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "client-notifications".
+ */
+export interface ClientNotification {
+  id: number;
+  client: number | Client;
+  type: 'booking';
+  booking?: (number | null) | Booking;
+  status?: string | null;
+  read?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "support-requests".
+ */
+export interface SupportRequest {
+  id: number;
+  client: number | Client;
+  topic: 'booking' | 'documents' | 'payment' | 'other';
+  contactMethod?: string | null;
+  reference?: string | null;
+  message: string;
+  status?: ('new' | 'in_progress' | 'done') | null;
+  note?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "subscribers".
+ */
+export interface Subscriber {
+  id: number;
+  email: string;
+  locale?: string | null;
+  project?: (number | null) | Project;
+  marketingConsent?: boolean | null;
+  page?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -357,6 +651,19 @@ export interface Post {
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "faqs".
+ */
+export interface Faq {
+  id: number;
+  question: string;
+  answer: string;
+  category: 'buying' | 'payment' | 'legal' | 'construction';
+  order?: number | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -422,12 +729,44 @@ export interface PayloadLockedDocument {
         value: number | Promotion;
       } | null)
     | ({
+        relationTo: 'payment-methods';
+        value: number | PaymentMethod;
+      } | null)
+    | ({
         relationTo: 'leads';
         value: number | Lead;
       } | null)
     | ({
+        relationTo: 'bookings';
+        value: number | Booking;
+      } | null)
+    | ({
+        relationTo: 'clients';
+        value: number | Client;
+      } | null)
+    | ({
+        relationTo: 'client-notifications';
+        value: number | ClientNotification;
+      } | null)
+    | ({
+        relationTo: 'support-requests';
+        value: number | SupportRequest;
+      } | null)
+    | ({
+        relationTo: 'subscribers';
+        value: number | Subscriber;
+      } | null)
+    | ({
         relationTo: 'posts';
         value: number | Post;
+      } | null)
+    | ({
+        relationTo: 'faqs';
+        value: number | Faq;
+      } | null)
+    | ({
+        relationTo: 'documents';
+        value: number | Document;
       } | null)
     | ({
         relationTo: 'media';
@@ -487,6 +826,12 @@ export interface ProjectsSelect<T extends boolean = true> {
   title?: T;
   tagline?: T;
   excerpt?: T;
+  tags?:
+    | T
+    | {
+        text?: T;
+        id?: T;
+      };
   description?: T;
   district?: T;
   address?: T;
@@ -497,6 +842,64 @@ export interface ProjectsSelect<T extends boolean = true> {
     | T
     | {
         text?: T;
+        image?: T;
+        id?: T;
+      };
+  presentation?: T;
+  videoUrl?: T;
+  masterplan?: T;
+  highlights?:
+    | T
+    | {
+        text?: T;
+        id?: T;
+      };
+  livingIs?:
+    | T
+    | {
+        text?: T;
+        image?: T;
+        id?: T;
+      };
+  buildings?:
+    | T
+    | {
+        name?: T;
+        completion?: T;
+        totalApartments?: T;
+        markerX?: T;
+        markerY?: T;
+        types?:
+          | T
+          | {
+              rooms?: T;
+              count?: T;
+              priceFrom?: T;
+              id?: T;
+            };
+        id?: T;
+      };
+  layouts?:
+    | T
+    | {
+        plan?: T;
+        rooms?: T;
+        area?: T;
+        building?: T;
+        priceFrom?: T;
+        priceFromGelPerSqm?: T;
+        id?: T;
+      };
+  infrastructure?:
+    | T
+    | {
+        image?: T;
+        category?: T;
+        lat?: T;
+        lng?: T;
+        name?: T;
+        minutes?: T;
+        mode?: T;
         id?: T;
       };
   cover?: T;
@@ -504,6 +907,7 @@ export interface ProjectsSelect<T extends boolean = true> {
     | T
     | {
         image?: T;
+        category?: T;
         id?: T;
       };
   progress?:
@@ -551,7 +955,17 @@ export interface ApartmentsSelect<T extends boolean = true> {
   view?: T;
   hasBalcony?: T;
   renovated?: T;
+  building?: T;
+  finish?: T;
+  features?: T;
   plan?: T;
+  extraImages?:
+    | T
+    | {
+        kind?: T;
+        image?: T;
+        id?: T;
+      };
   status?: T;
   promo?: T;
   updatedAt?: T;
@@ -565,10 +979,44 @@ export interface PromotionsSelect<T extends boolean = true> {
   title?: T;
   badge?: T;
   description?: T;
+  body?: T;
+  conditions?: T;
+  slug?: T;
   image?: T;
   project?: T;
   validUntil?: T;
   active?: T;
+  order?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payment-methods_select".
+ */
+export interface PaymentMethodsSelect<T extends boolean = true> {
+  title?: T;
+  summary?: T;
+  terms?:
+    | T
+    | {
+        label?: T;
+        value?: T;
+        id?: T;
+      };
+  body?: T;
+  steps?:
+    | T
+    | {
+        title?: T;
+        text?: T;
+        id?: T;
+      };
+  conditions?: T;
+  slug?: T;
+  showCalculator?: T;
+  calcMinDown?: T;
+  calcMaxMonths?: T;
   order?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -596,6 +1044,98 @@ export interface LeadsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "bookings_select".
+ */
+export interface BookingsSelect<T extends boolean = true> {
+  apartment?: T;
+  project?: T;
+  name?: T;
+  phone?: T;
+  email?: T;
+  client?: T;
+  contactMethod?: T;
+  message?: T;
+  priceAtBooking?: T;
+  holdUntil?: T;
+  page?: T;
+  locale?: T;
+  utm?: T;
+  status?: T;
+  note?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "clients_select".
+ */
+export interface ClientsSelect<T extends boolean = true> {
+  email?: T;
+  name?: T;
+  phone?: T;
+  locale?: T;
+  favoriteApartments?: T;
+  favoriteProjects?: T;
+  savedSearches?:
+    | T
+    | {
+        name?: T;
+        query?: T;
+        id?: T;
+      };
+  passwordHash?: T;
+  passwordSalt?: T;
+  sessionVersion?: T;
+  failedAttempts?: T;
+  lockedUntil?: T;
+  resetTokenHash?: T;
+  resetExpires?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "client-notifications_select".
+ */
+export interface ClientNotificationsSelect<T extends boolean = true> {
+  client?: T;
+  type?: T;
+  booking?: T;
+  status?: T;
+  read?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "support-requests_select".
+ */
+export interface SupportRequestsSelect<T extends boolean = true> {
+  client?: T;
+  topic?: T;
+  contactMethod?: T;
+  reference?: T;
+  message?: T;
+  status?: T;
+  note?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "subscribers_select".
+ */
+export interface SubscribersSelect<T extends boolean = true> {
+  email?: T;
+  locale?: T;
+  project?: T;
+  marketingConsent?: T;
+  page?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "posts_select".
  */
 export interface PostsSelect<T extends boolean = true> {
@@ -616,6 +1156,39 @@ export interface PostsSelect<T extends boolean = true> {
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "faqs_select".
+ */
+export interface FaqsSelect<T extends boolean = true> {
+  question?: T;
+  answer?: T;
+  category?: T;
+  order?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "documents_select".
+ */
+export interface DocumentsSelect<T extends boolean = true> {
+  title?: T;
+  description?: T;
+  category?: T;
+  order?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  url?: T;
+  thumbnailURL?: T;
+  filename?: T;
+  mimeType?: T;
+  filesize?: T;
+  width?: T;
+  height?: T;
+  focalX?: T;
+  focalY?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -739,6 +1312,47 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
  */
 export interface SiteSetting {
   id: number;
+  menuItems?:
+    | {
+        label: string;
+        /**
+         * Куда ведёт пункт. Для выпадающих — страница по ссылке в мобильном меню.
+         */
+        href: string;
+        kind: 'link' | 'columns' | 'tiles';
+        columns?:
+          | {
+              label: string;
+              href: string;
+              autoMethods?: boolean | null;
+              links?:
+                | {
+                    label: string;
+                    href: string;
+                    id?: string | null;
+                  }[]
+                | null;
+              id?: string | null;
+            }[]
+          | null;
+        tiles?:
+          | {
+              label: string;
+              href: string;
+              image?: (number | null) | Media;
+              id?: string | null;
+            }[]
+          | null;
+        sideLinks?:
+          | {
+              label: string;
+              href: string;
+              id?: string | null;
+            }[]
+          | null;
+        id?: string | null;
+      }[]
+    | null;
   phone: string;
   email?: string | null;
   /**
@@ -780,6 +1394,45 @@ export interface SiteSetting {
     [k: string]: unknown;
   } | null;
   aboutImage?: (number | null) | Media;
+  aboutHistory?:
+    | {
+        year: string;
+        text: string;
+        id?: string | null;
+      }[]
+    | null;
+  aboutTeam?:
+    | {
+        name: string;
+        role?: string | null;
+        photo?: (number | null) | Media;
+        id?: string | null;
+      }[]
+    | null;
+  aboutAwards?:
+    | {
+        title: string;
+        year?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  bookingHoldHours?: number | null;
+  /**
+   * Если пусто, сумма на сайте не показывается. Онлайн-оплата не подключена: менеджер связывается с клиентом.
+   */
+  bookingDeposit?: number | null;
+  bookingNote?: string | null;
+  standardTitle?: string | null;
+  /**
+   * Если пусто, на странице проекта показываются три базовых преимущества компании.
+   */
+  standard?:
+    | {
+        title: string;
+        text?: string | null;
+        id?: string | null;
+      }[]
+    | null;
   seoTitle?: string | null;
   seoDescription?: string | null;
   ogImage?: (number | null) | Media;
@@ -791,6 +1444,44 @@ export interface SiteSetting {
  * via the `definition` "site-settings_select".
  */
 export interface SiteSettingsSelect<T extends boolean = true> {
+  menuItems?:
+    | T
+    | {
+        label?: T;
+        href?: T;
+        kind?: T;
+        columns?:
+          | T
+          | {
+              label?: T;
+              href?: T;
+              autoMethods?: T;
+              links?:
+                | T
+                | {
+                    label?: T;
+                    href?: T;
+                    id?: T;
+                  };
+              id?: T;
+            };
+        tiles?:
+          | T
+          | {
+              label?: T;
+              href?: T;
+              image?: T;
+              id?: T;
+            };
+        sideLinks?:
+          | T
+          | {
+              label?: T;
+              href?: T;
+              id?: T;
+            };
+        id?: T;
+      };
   phone?: T;
   email?: T;
   whatsapp?: T;
@@ -815,6 +1506,39 @@ export interface SiteSettingsSelect<T extends boolean = true> {
   aboutTitle?: T;
   aboutText?: T;
   aboutImage?: T;
+  aboutHistory?:
+    | T
+    | {
+        year?: T;
+        text?: T;
+        id?: T;
+      };
+  aboutTeam?:
+    | T
+    | {
+        name?: T;
+        role?: T;
+        photo?: T;
+        id?: T;
+      };
+  aboutAwards?:
+    | T
+    | {
+        title?: T;
+        year?: T;
+        id?: T;
+      };
+  bookingHoldHours?: T;
+  bookingDeposit?: T;
+  bookingNote?: T;
+  standardTitle?: T;
+  standard?:
+    | T
+    | {
+        title?: T;
+        text?: T;
+        id?: T;
+      };
   seoTitle?: T;
   seoDescription?: T;
   ogImage?: T;
